@@ -1,0 +1,68 @@
+@width: 800px;
+@height: 600px;
+
+@fontFamily: 'Londrina Solid', cursive;
+@fontSize: 72px;
+@textColor: white;
+
+@darkColor: #9DD745;
+@brightColor: #2D6201;
+
+.slide {
+    background: rgba(255, 255, 255, .95) url('./images/ats logo.png') no-repeat 95% 95%;
+}
+
+#theEnd div {
+    -webkit-transition: font-size 1s;
+    -moz-transition:    font-size 1s;
+    -ms-transition:     font-size 1s;
+    -o-transition:      font-size 1s;
+    transition:         font-size 1s;
+}
+
+#theEnd:not(.active) div {
+    font-size: 0;
+}
+
+/*article {
+    .whiteText;
+}*/
+
+.code {
+    font-family: 'Inconsolata', sans-serif;
+}
+
+.moreShadow {
+    text-shadow: 2px 2px 20px #000;
+}
+
+#notSoLongAgo {
+    position: relative;
+    bottom:  -400px;
+    right: -800px;
+    -webkit-transform: rotate(40deg);
+    transform: rotate(40deg);
+}
+
+.codeItem {
+    background: #f5f2f0;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: .8em;
+    margin: 20px 0 0 30px;
+    code {
+        font-size: .5em;
+    }
+    div {
+        color: #0e0e0e;
+    }
+    pre[class*="language-"] {
+        line-height: .7em;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+#sampleSlide code {
+    font-size: .5em;
+}

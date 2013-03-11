@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+    <title>tdh at Scala@Berlin</title>
+    <meta name="author" content="Robert Magnus"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+    <link type="text/css" rel="stylesheet" href="./css/caffeine-high.css"/>
+    <link type="text/css" href="./css/prism.css" rel="stylesheet" />
+    <!--Fonts-->
+    <link href='http://fonts.googleapis.com/css?family=Londrina+Solid' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+
+</head>
+<body>
+<div id="caffeine" class="presentation">
+    <div class="fallback-message">
+        <p>Your browser <strong>doesn't support the features required</strong> by caffeine high, so you are
+            presented with a simplified version of this presentation.</p>
+
+        <p>For the best experience please use the latest <strong>Chrome</strong> or <strong>Safari</strong> browser.</p>
+    </div>
+
+    <section id="titleSection">
+        <article id="title" class="centered" data-x="0">
+            <div>tdh admin application</div>
+        </article>
+    </section>
+
+    <section id="preparation">
+        <article id="title" class="centered" data-dx="1000">
+            <div>tdh - terre des hommes</div>
+            <div style="color: rgb(166, 28, 38);">Hilfe für Kinder in Not</div>
+            <div>CRM application </div>
+        </article>
+        <article id="tdh" class="centered hidden" data-dx="1000">
+            <div>CRM application </div>
+        </article>
+        <article id="tdh" class="centered hidden" data-dx="1000">
+            <div>twitter bootstrap</div>
+            <div>play/scala</div>
+            <div>anorm</div>
+        </article>
+    </section>
+
+    <section id="views">
+        <article id="view" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>Login.scala.html</div>
+                    <pre><code class="language-markup">
+
+&lt;div class="control-group @if(loginForm.error("account").isDefined){error}"&gt;
+    &lt;label class="control-label" for="inputName"&gt;Name&lt;/label&gt;
+    &lt;div class="controls"&gt;
+        &lt;input type="text" id="inputName" name="account" placeholder="Email"&gt;
+        @if(loginForm.error("account").isDefined){
+            &lt;span class="help-inline"&gt;Name darf nicht leer sein!&lt;/span&gt;
+        }
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+</div>
+        </article>
+    </section>
+
+    <section id="controller">
+        <article id="login" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>LoginApplication.scala</div>
+                    <pre><code class="language-java">
+
+val loginForm: Form[LoginData] = Form(
+mapping(
+  "account" -> nonEmptyText,
+  "password" -> nonEmptyText)(LoginData.apply)(LoginData.unapply)
+  verifying ("Name bzw. Passwort sind ungültig!", fields => fields match {
+    case login: LoginData =>
+      login.account == Play.current.configuration.getString("auth.username").get &&
+      login.password == Play.current.configuration.getString("auth.password").get
+  }))
+
+
+</code></pre>
+</div>
+        </article>
+        <article id="secured" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>Secured.scala</div>
+                    <pre><code class="language-java">
+private def username(request: RequestHeader) = request.session.get("username")
+
+implicit def user(implicit request : RequestHeader) : User = {
+     User.findByMail(username(request).get).get
+}
+
+private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.LoginApplication.login())
+
+def SecuredAction(f: => String => Request[AnyContent] => Result) =
+    Security.Authenticated(username, onUnauthorized) {
+      user => Action(request => f(user)(request))
+    }
+</code></pre>
+</div>
+        </article>
+        <article id="db" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>Stammdaten.scala</div>
+                    <pre><code class="language-java">
+
+  def downloadSerienbrief(id: Int) = SecuredAction { _ =>
+    implicit request => {
+      val letterOption: Option[TbIndividualLetter] = StammdatenService.findByLetter(Id(id))
+      letterOption match {
+        case Some(letter) => {
+          val headers = ResponseHeader(OK, Map(
+            CONTENT_DISPOSITION -> ("attachment; filename=\"" + letter.desc.getOrElse("Brief") + ".rtf\""),
+            CONTENT_TYPE -> "text/richtext"))
+          val stream: ByteArrayInputStream = new ByteArrayInputStream(letter.brief)
+          SimpleResult(headers, Enumerator.fromStream(stream))
+        }
+        case None => NotFound("Letter with id: " + id + " not found")
+      } } }
+
+</code></pre>
+</div>
+        </article>
+        <article id="db" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>StammdatenService.scala</div>
+                    <pre><code class="language-java">
+
+  def findByLetter(id: Pk[Int]): Option[TbIndividualLetter] = {
+    DB.withTransaction {
+      implicit connection =>
+        TbIndividualLetterManager.findBy(id)
+    }
+  }
+
+</code></pre>
+</div>
+        </article>
+        <article id="db" class="centered" data-dx="1000">
+            <div class="codeItem">
+                <div>TbIndividualLetter.scala</div>
+                    <pre><code class="language-java">
+
+  def findBy(id: Pk[Int])(implicit con: Connection): Option[TbIndividualLetter] = {
+    SQL("SELECT * FROM tb_individual_letter WHERE id = {id}").on
+        ("id" -> id.get).using(TbIndividualLetterManager.parser).singleOpt()
+  }
+
+</code></pre>
+</div>
+        </article>
+    </section>
+
+    <section>
+        <article id="around" class="centered hidden" data-y="1000" data-x="0">
+            <div>What else</div>
+        </article>
+        <article id="around" class="centered hidden" data-dy="0" data-dx="0">
+            <div>tests</div>
+            <div>continuous integration</div>
+            <div>continuous development</div>
+        </article>
+    </section>
+
+</div>
+<script src="./caffeine-high.js" type="text/javascript"></script>
+<script src="./prism.js"></script>
+</body>
+</html>
